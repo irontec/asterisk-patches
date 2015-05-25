@@ -1,0 +1,71 @@
+Index: include/asterisk/res_pjsip.h
+===================================================================
+--- include/asterisk/res_pjsip.h	(revisión: 433369)
++++ include/asterisk/res_pjsip.h	(copia de trabajo)
+@@ -554,6 +554,8 @@
+ 	AST_DECLARE_STRING_FIELDS(
+ 		/*! Context to send incoming calls to */
+ 		AST_STRING_FIELD(context);
++		/*! Context to send subscribes */
++		AST_STRING_FIELD(subscribecontext);
+ 		/*! Name of an explicit transport to use */
+ 		AST_STRING_FIELD(transport);
+ 		/*! Outbound proxy to use */
+Index: res/res_pjsip/pjsip_configuration.c
+===================================================================
+--- res/res_pjsip/pjsip_configuration.c	(revisión: 433369)
++++ res/res_pjsip/pjsip_configuration.c	(copia de trabajo)
+@@ -1676,6 +1676,7 @@
+ 
+ 	ast_sorcery_object_field_register(sip_sorcery, "endpoint", "type", "", OPT_NOOP_T, 0, 0);
+ 	ast_sorcery_object_field_register(sip_sorcery, "endpoint", "context", "default", OPT_STRINGFIELD_T, 0, STRFLDSET(struct ast_sip_endpoint, context));
++	ast_sorcery_object_field_register(sip_sorcery, "endpoint", "subscribecontext", "default", OPT_STRINGFIELD_T, 0, STRFLDSET(struct ast_sip_endpoint, subscribecontext));
+ 	ast_sorcery_object_field_register_alias(sip_sorcery, "endpoint", "disallow", "", OPT_CODEC_T, 0, FLDSET(struct ast_sip_endpoint, media.codecs));
+ 	ast_sorcery_object_field_register(sip_sorcery, "endpoint", "allow", "", OPT_CODEC_T, 1, FLDSET(struct ast_sip_endpoint, media.codecs));
+ 	ast_sorcery_object_field_register_custom(sip_sorcery, "endpoint", "dtmf_mode", "rfc4733", dtmf_handler, dtmf_to_str, NULL, 0, 0);
+Index: res/res_pjsip_exten_state.c
+===================================================================
+--- res/res_pjsip_exten_state.c	(revisión: 433369)
++++ res/res_pjsip_exten_state.c	(copia de trabajo)
+@@ -333,7 +333,7 @@
+ static int new_subscribe(struct ast_sip_endpoint *endpoint,
+ 		const char *resource)
+ {
+-	if (!ast_exists_extension(NULL, endpoint->context, resource, PRIORITY_HINT, NULL)) {
++	if (!ast_exists_extension(NULL, endpoint->subscribecontext, resource, PRIORITY_HINT, NULL)) {
+ 		ast_log(LOG_NOTICE, "Extension %s does not exist or has no associated hint\n", resource);
+ 		return 404;
+ 	}
+@@ -352,7 +352,7 @@
+ 		return -1;
+ 	}
+ 
+-	ast_copy_string(exten_state_sub->context, endpoint->context, sizeof(exten_state_sub->context));
++	ast_copy_string(exten_state_sub->context, endpoint->subscribecontext, sizeof(exten_state_sub->context));
+ 	ast_copy_string(exten_state_sub->exten, resource, sizeof(exten_state_sub->exten));
+ 
+ 	if ((exten_state_sub->id = ast_extension_state_add_destroy_extended(
+Index: res/res_pjsip.c
+===================================================================
+--- res/res_pjsip.c	(revisión: 433442)
++++ res/res_pjsip.c	(copia de trabajo)
+@@ -619,6 +619,9 @@
+ 				<configOption name="allow_subscribe" default="yes">
+ 					<synopsis>Determines if endpoint is allowed to initiate subscriptions with Asterisk.</synopsis>
+ 				</configOption>
++				<configOption name="subscribecontext" default="default">
++					<synopsis>Determines the subscribe context for subscriptions.</synopsis>
++				</configOption>
+ 				<configOption name="sub_min_expiry" default="60">
+ 					<synopsis>The minimum allowed expiry time for subscriptions initiated by the endpoint.</synopsis>
+ 				</configOption>
+@@ -1611,6 +1614,9 @@
+ 				<parameter name="AllowSubscribe">
+ 					<para><xi:include xpointer="xpointer(/docs/configInfo[@name='res_pjsip']/configFile[@name='pjsip.conf']/configObject[@name='endpoint']/configOption[@name='allow_subscribe']/synopsis/node())"/></para>
+ 				</parameter>
++				<parameter name="subscribecontext">
++					<para><xi:include xpointer="xpointer(/docs/configInfo[@name='res_pjsip']/configFile[@name='pjsip.conf']/configObject[@name='endpoint']/configOption[@name='subscribecontext']/synopsis/node())"/></para>
++				</parameter>
+ 				<parameter name="SubMinExpiry">
+ 					<para><xi:include xpointer="xpointer(/docs/configInfo[@name='res_pjsip']/configFile[@name='pjsip.conf']/configObject[@name='endpoint']/configOption[@name='sub_min_expiry']/synopsis/node())"/></para>
+ 				</parameter>
