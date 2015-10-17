@@ -7,7 +7,7 @@ Index: include/asterisk/res_pjsip.h
  		/*! Context to send incoming calls to */
  		AST_STRING_FIELD(context);
 +		/*! Context to send subscribes */
-+		AST_STRING_FIELD(subscribecontext);
++		AST_STRING_FIELD(subscribe_context);
  		/*! Name of an explicit transport to use */
  		AST_STRING_FIELD(transport);
  		/*! Outbound proxy to use */
@@ -19,7 +19,7 @@ Index: res/res_pjsip/pjsip_configuration.c
  
  	ast_sorcery_object_field_register(sip_sorcery, "endpoint", "type", "", OPT_NOOP_T, 0, 0);
  	ast_sorcery_object_field_register(sip_sorcery, "endpoint", "context", "default", OPT_STRINGFIELD_T, 0, STRFLDSET(struct ast_sip_endpoint, context));
-+	ast_sorcery_object_field_register(sip_sorcery, "endpoint", "subscribecontext", "default", OPT_STRINGFIELD_T, 0, STRFLDSET(struct ast_sip_endpoint, subscribecontext));
++	ast_sorcery_object_field_register(sip_sorcery, "endpoint", "subscribe_context", "default", OPT_STRINGFIELD_T, 0, STRFLDSET(struct ast_sip_endpoint, subscribe_context));
  	ast_sorcery_object_field_register_alias(sip_sorcery, "endpoint", "disallow", "", OPT_CODEC_T, 0, FLDSET(struct ast_sip_endpoint, media.codecs));
  	ast_sorcery_object_field_register(sip_sorcery, "endpoint", "allow", "", OPT_CODEC_T, 1, FLDSET(struct ast_sip_endpoint, media.codecs));
  	ast_sorcery_object_field_register_custom(sip_sorcery, "endpoint", "dtmf_mode", "rfc4733", dtmf_handler, dtmf_to_str, NULL, 0, 0);
@@ -32,7 +32,7 @@ Index: res/res_pjsip_exten_state.c
  		const char *resource)
  {
 -	if (!ast_exists_extension(NULL, endpoint->context, resource, PRIORITY_HINT, NULL)) {
-+	if (!ast_exists_extension(NULL, endpoint->subscribecontext, resource, PRIORITY_HINT, NULL)) {
++	if (!ast_exists_extension(NULL, endpoint->subscribe_context, resource, PRIORITY_HINT, NULL)) {
  		ast_log(LOG_NOTICE, "Extension state subscription failed: Extension %s does not exist in context '%s' or has no associated hint\n",
  			resource, endpoint->context);
  		return 404;
@@ -41,7 +41,7 @@ Index: res/res_pjsip_exten_state.c
  	}
  
 -	ast_copy_string(exten_state_sub->context, endpoint->context, sizeof(exten_state_sub->context));
-+	ast_copy_string(exten_state_sub->context, endpoint->subscribecontext, sizeof(exten_state_sub->context));
++	ast_copy_string(exten_state_sub->context, endpoint->subscribe_context, sizeof(exten_state_sub->context));
  	ast_copy_string(exten_state_sub->exten, resource, sizeof(exten_state_sub->exten));
  
  	if ((exten_state_sub->id = ast_extension_state_add_destroy_extended(
@@ -53,7 +53,7 @@ Index: res/res_pjsip.c
  				<configOption name="allow_subscribe" default="yes">
  					<synopsis>Determines if endpoint is allowed to initiate subscriptions with Asterisk.</synopsis>
  				</configOption>
-+				<configOption name="subscribecontext" default="default">
++				<configOption name="subscribe_context" default="default">
 +					<synopsis>Determines the subscribe context for subscriptions.</synopsis>
 +				</configOption>
  				<configOption name="sub_min_expiry" default="60">
@@ -63,8 +63,8 @@ Index: res/res_pjsip.c
  				<parameter name="AllowSubscribe">
  					<para><xi:include xpointer="xpointer(/docs/configInfo[@name='res_pjsip']/configFile[@name='pjsip.conf']/configObject[@name='endpoint']/configOption[@name='allow_subscribe']/synopsis/node())"/></para>
  				</parameter>
-+				<parameter name="subscribecontext">
-+					<para><xi:include xpointer="xpointer(/docs/configInfo[@name='res_pjsip']/configFile[@name='pjsip.conf']/configObject[@name='endpoint']/configOption[@name='subscribecontext']/synopsis/node())"/></para>
++				<parameter name="SubscribeContext">
++					<para><xi:include xpointer="xpointer(/docs/configInfo[@name='res_pjsip']/configFile[@name='pjsip.conf']/configObject[@name='endpoint']/configOption[@name='subscribe_context']/synopsis/node())"/></para>
 +				</parameter>
  				<parameter name="SubMinExpiry">
  					<para><xi:include xpointer="xpointer(/docs/configInfo[@name='res_pjsip']/configFile[@name='pjsip.conf']/configObject[@name='endpoint']/configOption[@name='sub_min_expiry']/synopsis/node())"/></para>
