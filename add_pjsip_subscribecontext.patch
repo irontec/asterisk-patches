@@ -27,16 +27,16 @@ Index: res/res_pjsip_exten_state.c
 ===================================================================
 --- res/res_pjsip_exten_state.c	(revisión: 433369)
 +++ res/res_pjsip_exten_state.c	(copia de trabajo)
-@@ -333,7 +333,7 @@
+@@ -352,7 +352,7 @@
  static int new_subscribe(struct ast_sip_endpoint *endpoint,
  		const char *resource)
  {
 -	if (!ast_exists_extension(NULL, endpoint->context, resource, PRIORITY_HINT, NULL)) {
 +	if (!ast_exists_extension(NULL, endpoint->subscribecontext, resource, PRIORITY_HINT, NULL)) {
- 		ast_log(LOG_NOTICE, "Extension %s does not exist or has no associated hint\n", resource);
+ 		ast_log(LOG_NOTICE, "Extension state subscription failed: Extension %s does not exist in context '%s' or has no associated hint\n",
+ 			resource, endpoint->context);
  		return 404;
- 	}
-@@ -352,7 +352,7 @@
+@@ -372,7 +372,7 @@
  		return -1;
  	}
  
